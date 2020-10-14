@@ -142,7 +142,9 @@ Distributed under the GPL3 License. See `LICENSE` for more information.
 
 Telegram - [@raifpy](https://t.me/raifpy)
 
-Project Link: [https://github.com/codeksiyon/PhishDroid](https://github.com/codeksiyon/PhishDroid)
+Project Link: [codeksiyon/PhishDroid](https://github.com/codeksiyon/PhishDroid)
+
+Template Link : [Best-README-Template](https://github.com/othneildrew/Best-README-Template)
 
 
 

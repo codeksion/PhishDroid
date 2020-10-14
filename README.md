@@ -17,10 +17,9 @@
   <p align="center">
     Simple Phishing Application for Android
     <br />
-    <a href="https://github.com/codeksiyon/PhishDroid#ScreenShots"><strong>ScreenShots »</strong></a>
+    <a href="#ScreenShots"><strong>Screenshots</strong></a>
     <br />
     <br />
-    .
     <a href="https://github.com/codeksiyon/PhishDroid/issues">Report Bug</a>
     ·
     <a href="https://github.com/codeksiyon/PhishDroid/issues">Request Feature</a>

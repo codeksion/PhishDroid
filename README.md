@@ -1,8 +1,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![GPL License][license-shield]][license-url]
 
 
 
@@ -13,10 +12,10 @@
     <img src="/fes.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">YOUR_TITLE</h3>
+  <h3 align="center">PhishDroid</h3>
 
   <p align="center">
-    YOUR_SHORT_DESCRIPTION
+    Simple Phishing Application for Android
     <br />
     <a href="https://github.com/codeksiyon/PhishDroid"><strong>Explore the docs »</strong></a>
     <br />
@@ -151,13 +150,13 @@ Project Link: [https://github.com/codeksiyon/PhishDroid](https://github.com/code
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/codeksiyon/repo.svg?style=flat-square
 [forks-shield]: https://img.shields.io/github/forks/codeksiyon/repo.svg?style=flat-square
-[forks-url]: https://github.com/github_username/repo/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo.svg?style=flat-square
-[stars-url]: https://github.com/github_username/repo/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo.svg?style=flat-square
-[issues-url]: https://github.com/github_username/repo/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo.svg?style=flat-square
-[license-url]: https://github.com/github_username/repo/blob/master/LICENSE.txt
+[forks-url]: https://github.com/codeksiyon/PhishDroid/network/members
+[stars-shield]: https://img.shields.io/github/stars/codeksiyon/repo.svg?style=flat-square
+[stars-url]: https://github.com/codeksiyon/PhishDroid/stargazers
+[issues-shield]: https://img.shields.io/github/issues/codeksiyon/repo.svg?style=flat-square
+[issues-url]: https://github.com/codeksiyon/PhishDroid/issues
+[license-shield]: https://img.shields.io/github/license/codeksiyon/repo.svg?style=flat-square
+[license-url]: https://github.com/codeksiyon/PhishDroid/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/github_username
-[product-screenshot]: images/screenshot.png
+
+[product-screenshot]: screenshot.png

@@ -140,7 +140,7 @@ Distributed under the GPL3 License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@raifpy](https://t.me/raifpy) - email
+Telegram - [@raifpy](https://t.me/raifpy)
 
 Project Link: [https://github.com/codeksiyon/PhishDroid](https://github.com/codeksiyon/PhishDroid)
 
@@ -148,15 +148,15 @@ Project Link: [https://github.com/codeksiyon/PhishDroid](https://github.com/code
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/codeksiyon/repo.svg?style=flat-square
-[forks-shield]: https://img.shields.io/github/forks/codeksiyon/repo.svg?style=flat-square
+[contributors-shield]: https://img.shields.io/github/contributors/codeksiyon/PhishDroid.svg?style=flat-square
+[forks-shield]: https://img.shields.io/github/forks/codeksiyon/PhishDroid.svg?style=flat-square
 [forks-url]: https://github.com/codeksiyon/PhishDroid/network/members
-[stars-shield]: https://img.shields.io/github/stars/codeksiyon/repo.svg?style=flat-square
+[stars-shield]: https://img.shields.io/github/stars/codeksiyon/PhishDroid.svg?style=flat-square
 [stars-url]: https://github.com/codeksiyon/PhishDroid/stargazers
-[issues-shield]: https://img.shields.io/github/issues/codeksiyon/repo.svg?style=flat-square
+[issues-shield]: https://img.shields.io/github/issues/codeksiyon/PhishDroid.svg?style=flat-square
 [issues-url]: https://github.com/codeksiyon/PhishDroid/issues
-[license-shield]: https://img.shields.io/github/license/codeksiyon/repo.svg?style=flat-square
-[license-url]: https://github.com/codeksiyon/PhishDroid/blob/master/LICENSE.txt
+[license-shield]: https://img.shields.io/github/license/codeksiyon/PhishDroid.svg?style=flat-square
+[license-url]: https://github.com/codeksiyon/PhishDroid/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 
 [product-screenshot]: screenshot.png

@@ -296,7 +296,7 @@ func gui(uyg fyne.App, win fyne.Window) {
 		}
 		ham, _ := ioutil.ReadAll(verReq.Body)
 		hamStr := strings.Trim(string(ham), "\n")
-		reqVer, err := strconv.ParseFloat(hamStr, 32)
+		reqVer, err := strconv.ParseFloat(hamStr, 1)
 		if errHandler.HandlerBool(err) {
 			return
 		}

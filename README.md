@@ -52,19 +52,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started:
-**To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`github_username`, `repo_name`, `twitter_handle`, `email`
-
-
-### Built With
-
-* []()
-* []()
-* []()
-
+Codeksiyon's Simple Phishing Application
+Under GPL3+
 
 
 <!-- GETTING STARTED -->
@@ -75,16 +64,16 @@ To get a local copy up and running follow these simple steps.
 ### Prerequisites
 
 This is an example of how to list things you need to use the software and how to install them.
-* npm
+* golang
 ```sh
-npm install npm@latest -g
+apt install golang
 ```
 
 ### Installation
 
 1. Clone the repo
 ```sh
-git clone https://github.com/github_username/repo_name.git
+git clone https://github.com/codeksiyon/PhishDroid.git
 ```
 2. Install GoLang
 ```sh
@@ -159,21 +148,10 @@ Project Link: [https://github.com/codeksiyon/PhishDroid](https://github.com/code
 
 
 
-<!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
-
-* []()
-* []()
-* []()
-
-
-
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo.svg?style=flat-square
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo.svg?style=flat-square
+[contributors-shield]: https://img.shields.io/github/contributors/codeksiyon/repo.svg?style=flat-square
+[forks-shield]: https://img.shields.io/github/forks/codeksiyon/repo.svg?style=flat-square
 [forks-url]: https://github.com/github_username/repo/network/members
 [stars-shield]: https://img.shields.io/github/stars/github_username/repo.svg?style=flat-square
 [stars-url]: https://github.com/github_username/repo/stargazers

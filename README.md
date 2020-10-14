@@ -111,9 +111,9 @@ cd $GOPATH/src/PhishDroid
 
 7. Build for Android
 ```sh
-fyne package -os android . # all archs
-fyne package -os android/arm .
-fyne package -os android/arm64 .
+fyne package -os android -appID "org.codeksiyon.phishdroid" . # all archs
+fyne package -os android/arm -appID "org.codeksiyon.phishdroid" .
+fyne package -os android/arm64 -appID "org.codeksiyon.phishdroid" .
 ```
 
 

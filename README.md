@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/codeksiyon/PhishDroid?style=flat-square)]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]

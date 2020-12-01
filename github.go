@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"github.com/raifpy/Go/errHandler"
 )
 
-func serveGithubLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
+func serveGithubLogin(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
 	serveFunc := func(response http.ResponseWriter, req *http.Request) {
 		log.Println("Requests -> ", req.Form.Encode())
 		//query := req.URL.Query()
@@ -44,7 +45,24 @@ func serveGithubLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *st
 		fmt.Fprintln(response, githubLogin)
 		return
 	}
-	http.HandleFunc("/", serveFunc)
-	err := http.ListenAndServe(":8089", nil)
-	dialog.ShowError(err, win)
+
+	//http.HandleFunc("/", serveFunc)
+
+	m := http.NewServeMux()
+	s := http.Server{Addr: ":8089", Handler: m}
+	m.HandleFunc("/", serveFunc)
+
+	go func() {
+		<-kapat
+		s.Shutdown(context.Background())
+		fmt.Println("Server Shutdown")
+
+	}()
+
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+		if useTelegramBot {
+			tg.send(err.Error())
+		}
+		dialog.ShowError(err, win)
+	}
 }

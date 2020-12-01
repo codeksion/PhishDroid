@@ -125,7 +125,7 @@ func serveInstagramTelif(kapat chan bool, win fyne.Window, textGrid *widget.Text
 
 	}()
 
-	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err)  && err.Error() != serverClosedErrString{
 		if useTelegramBot {
 			tg.send(err.Error())
 		}
@@ -180,7 +180,7 @@ func serveInstagramLogin(kapat chan bool, win fyne.Window, textGrid *widget.Text
 
 	}()
 
-	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err)  && err.Error() != serverClosedErrString{
 		if useTelegramBot {
 			tg.send(err.Error())
 		}

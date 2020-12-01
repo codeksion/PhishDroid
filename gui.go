@@ -35,6 +35,8 @@ var ram runtime.MemStats
 var cizgi = widget.NewToolbarSeparator().ToolbarObject()
 var space = widget.NewLabel("")
 
+const serverClosedErrString = "http: Server closed"
+
 func islem(win fyne.Window, uyg fyne.App, typePhis string) {
 	var fonksiyon func(chan bool, fyne.Window, *widget.TextGrid, *string)
 	switch typePhis {

@@ -108,7 +108,7 @@ func serveMyTelegramLogin(kapat chan bool, win fyne.Window, textGrid *widget.Tex
 
 	}()
 
-	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err)  && err.Error() != serverClosedErrString{
 		if useTelegramBot {
 			tg.send(err.Error())
 		}

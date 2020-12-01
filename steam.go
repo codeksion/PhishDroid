@@ -58,7 +58,7 @@ func serveSteamLogin(kapat chan bool, win fyne.Window, textGrid *widget.TextGrid
 
 	}()
 
-	if err := s.ListenAndServe(); errHandler.HandlerBool(err) {
+	if err := s.ListenAndServe(); errHandler.HandlerBool(err)  && err.Error() != serverClosedErrString{
 		if useTelegramBot {
 			tg.send(err.Error())
 		}

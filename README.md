@@ -10,7 +10,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/codeksiyon/PhishDroid">
-    <img src="/fes.png" alt="Logo" width="100" >
+    <img src="/Icon.png" alt="Logo" width="100" >
   </a>
 
   <h3 align="center">PhishDroid</h3>
